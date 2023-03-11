@@ -2,6 +2,7 @@
 - [思考](#思考)
 - [解决方案](#解决方案)
 - [结构](#结构)
+- [Java伪代码](#java伪代码)
 - [Java案例](#java案例)
   - [浅克隆](#浅克隆)
   - [深度克隆](#深度克隆)
@@ -39,6 +40,7 @@
 **基本结构：**
 
 
+![image](https://user-images.githubusercontent.com/83335903/224468210-c628cede-1deb-4f7a-a505-5d802ad8f57d.png)
 
 
 
@@ -52,10 +54,103 @@
 
 **原型注册表结构**
 
+![image](https://user-images.githubusercontent.com/83335903/224468217-940219c5-de08-4f8d-8f65-82d66cbe1306.png)
+
 
 
 **原型注册表** （Prototype Registry） 提供了一种访问常用原型的简单方法， 其中存储了一系列可供随时复制的预生成对象。 最简单的注册表原型是一个 `名称 → 原型`的哈希表。 但如果需要使用名称以外的条件进行搜索， 你可以创建更加完善的注册表版本。
 
+# Java伪代码
+
+![image](https://user-images.githubusercontent.com/83335903/224468272-c4b1dbe8-298f-4488-8108-5e8d88512cf8.png)
+
+所有形状类都遵循同一个提供克隆方法的接口。 在复制自身成员变量值到结果对象前， 子类可调用其父类的克隆方法。
+```
+// 基础原型。
+abstract class Shape 
+    field X: int
+    field Y: int
+    field color: string
+
+    // 常规构造函数。
+    constructor Shape() 
+        // ……
+
+    // 原型构造函数。使用已有对象的数值来初始化一个新对象。
+    constructor Shape(source: Shape) 
+        this()
+        this.X = source.X
+        this.Y = source.Y
+        this.color = source.color
+
+    // clone（克隆）操作会返回一个形状子类。
+    abstract method clone():Shape
+
+
+// 具体原型。克隆方法会创建一个新对象并将其传递给构造函数。直到构造函数运
+// 行完成前，它都拥有指向新克隆对象的引用。因此，任何人都无法访问未完全生
+// 成的克隆对象。这可以保持克隆结果的一致。
+class Rectangle extends Shape 
+    field width: int
+    field height: int
+
+    constructor Rectangle(source: Rectangle) is
+        // 需要调用父构造函数来复制父类中定义的私有成员变量。
+        super(source)
+        this.width = source.width
+        this.height = source.height
+
+    method clone():Shape is
+        return new Rectangle(this)
+
+
+class Circle extends Shape 
+    field radius: int
+
+    constructor Circle(source: Circle) 
+        super(source)
+        this.radius = source.radius
+
+    method clone():Shape 
+        return new Circle(this)
+
+
+// 客户端代码中的某个位置。
+class Application 
+    field shapes: array of Shape
+
+    constructor Application() 
+        Circle circle = new Circle()
+        circle.X = 10
+        circle.Y = 10
+        circle.radius = 20
+        shapes.add(circle)
+
+        Circle anotherCircle = circle.clone()
+        shapes.add(anotherCircle)
+        // 变量 `anotherCircle（另一个圆）`与 `circle（圆）`对象的内
+        // 容完全一样。
+
+        Rectangle rectangle = new Rectangle()
+        rectangle.width = 10
+        rectangle.height = 20
+        shapes.add(rectangle)
+
+    method businessLogic() 
+        // 原型是很强大的东西，因为它能在不知晓对象类型的情况下生成一个与
+        // 其完全相同的复制品。
+        Array shapesCopy = new Array of Shapes.
+
+        // 例如，我们不知晓形状数组中元素的具体类型，只知道它们都是形状。
+        // 但在多态机制的帮助下，当我们在某个形状上调用 `clone（克隆）`
+        // 方法时，程序会检查其所属的类并调用其中所定义的克隆方法。这样，
+        // 我们将获得一个正确的复制品，而不是一组简单的形状对象。
+        foreach (s in shapes) do
+            shapesCopy.add(s.clone())
+
+        // `shapesCopy（形状副本）`数组中包含 `shape（形状）`数组所有
+        // 子元素的复制品。
+```
 # Java案例
 
 ## 浅克隆
@@ -64,13 +159,15 @@
 
 这里一个包下分别有3个类。
 
-![image-20230310232009175](https://img2023.cnblogs.com/blog/3010963/202303/3010963-20230310232022872-711949992.png)
 
-![image-20230311135346741](https://img2023.cnblogs.com/blog/3010963/202303/3010963-20230311135401255-193402240.png)
+
+![image](https://user-images.githubusercontent.com/83335903/224468332-0818bd58-cbf8-4e9d-9fdb-b3ac1624be6a.png)
+
 
 1. 首先将`Object`作为抽象原型类，在Object 中提供了克隆方法`clone()`,用于创建一个原型对象,其 clone()方法具体实现由JVM完成,用户在使用时无须关心
 
-![image-20230310232146105](https://img2023.cnblogs.com/blog/3010963/202303/3010963-20230310232159092-641942313.png)
+![image](https://user-images.githubusercontent.com/83335903/224468341-024f4c99-693c-49b8-8af6-e1957c2d036a.png)
+
 
 
 
@@ -163,7 +260,8 @@ public class Client {
 }
 ```
 
-![image-20230311135529583](https://img2023.cnblogs.com/blog/3010963/202303/3010963-20230311135543698-769336233.png)
+![image](https://user-images.githubusercontent.com/83335903/224468352-f29c051d-67a4-49bd-8f85-e906b1f283c1.png)
+
 
 通过结果可以看出,表达式(email==copyEmail)结果为false,即通过复制得到的对象与原型对象的引用不一致,也就是说明在内存中存在两个完全不同的对象，一个是原型对象，一个是克隆生成的对象。
 但是表达式(email.getAttachment( ) == copyEmail.getAttachment())结果为true,两个对象的成员对象是同一个,说明虽然对象本身复制了一份,但其成员对象在内存中没有复制,原型对象和克隆对象维持了对相同的成员对象的引用
@@ -174,19 +272,107 @@ public class Client {
 
 使用深克隆实现邮件复制,即复制邮件的同时复制附件
 
-![image-20230311135144188](https://img2023.cnblogs.com/blog/3010963/202303/3010963-20230311135159260-1555671069.png)
+![image](https://user-images.githubusercontent.com/83335903/224468373-353a4ff2-8133-44df-adb8-46579ea09e6b.png)
+
+
 
 1. 附件类 Attachment
 
 作为Email类的成员对象,在深克隆中,Attachment类型的对象也将被写入流中,因此Attachment类也需要实现Serializable接口。
+```
+package prototype2;
+
+import java.io.Serializable;
+
+/**
+ * @author gk0d
+ * @create 2023-03-10-22:20
+ */
+public class Attachment implements Serializable {
+
+    public void download(){
+        System.out.println("下载附件");
+    }
+}
+
+```
 
 2. 具体原型类Email(邮件类)
 
 Email作为具体原型类,由于实现的是深克隆,无须使用Object的 clone()方法,因此无须实现Cloneable接口;可以通过序列化的方式实现深克隆(代码中粗体部分),由于要将Email类型的对象写入流中,因此Email类需要实现Serializable接口。
+```
+package prototype2;
+
+import java.io.*;
+
+/**
+ * @author gk0d
+ * @create 2023-03-10-22:18
+ */
+public class Email implements Serializable {
+
+    private Attachment attachment=null;
+
+    public Email(){
+        this.attachment=new Attachment();
+    }
+
+
+    public Object deepClone() throws IOException,ClassNotFoundException, OptionalDataException{
+        //将对象写入流中
+        ByteArrayOutputStream bao=new ByteArrayOutputStream();
+        ObjectOutputStream oos =new ObjectOutputStream(bao);
+        oos.writeObject(this);
+
+        //将对象从流中取出
+        ByteArrayInputStream bis =new ByteArrayInputStream(bao.toByteArray());
+        ObjectInputStream ois =new ObjectInputStream(bis);
+        return (ois.readObject());
+    }
+
+
+    public Attachment getAttachment(){
+        return this.attachment;
+    }
+
+    public void display(){
+        System.out.println("查看邮件");
+    }
+}
+
+```
 
 3. 客户端测试类Client
 
 在Client客户端测试类中,我们仍然比较深克隆后原型对象和拷贝对象是否一致,并比较其成员对象attachment的引用是否一致
+```
+package prototype2;
+
+/**
+ * @author gk0d
+ * @create 2023-03-11-22:28
+ */
+public class Client {
+
+    public static void main(String[] args) {
+        Email email,copyEmail = null;
+        email=new Email();
+
+        try {
+            copyEmail = (Email) email.deepClone();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        System.out.println("email==copyEmail?");
+        System.out.println(email==copyEmail);
+
+        System.out.println("email.getAttachment()==copyEmail.getAttachment()?");
+        System.out.println(email.getAttachment()==copyEmail.getAttachment());
+    }
+}
+
+```
 
 # 应用场景
 
